@@ -34,5 +34,6 @@
 # VS
 .vs/
 .vscode/
-*.user
 x64/
+Release/
+Debug/
