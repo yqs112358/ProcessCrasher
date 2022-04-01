@@ -19,6 +19,14 @@ bool IsSameName(LPCTSTR a, LPCTSTR b)
     return sa == sb;
 }
 
+bool IsNumber(wstring str)
+{
+    for (auto& ch : str)
+        if (!iswdigit(ch))
+            return false;
+    return true;
+}
+
 void RedirectIOToConsole()
 {
     AllocConsole();
@@ -56,21 +64,8 @@ DWORD GetProcIDFromName(LPCTSTR lpName)
     return 0;
 }
 
-int CrashProgram(wstring process)
+int CrashProgram(int pid)
 {
-    if (process.find(L".") == wstring::npos)
-        process += L".exe";
-
-    LPCTSTR ProcessName = process.c_str();
-
-    string a;
-    DWORD pid = GetProcIDFromName(ProcessName);
-    if (pid == 0)
-    {
-        std::cout << "Fail to find process" << std::endl;
-        return GetLastError();
-    }
-
     HANDLE hprocess = OpenProcess(PROCESS_ALL_ACCESS, false, pid);
     if (!hprocess) {
         std::cout << "Fail to open process" << std::endl;
@@ -100,6 +95,24 @@ int CrashProgram(wstring process)
     return 0;
 }
 
+int CrashProgram(wstring process)
+{
+    if (process.find(L".") == wstring::npos)
+        process += L".exe";
+
+    LPCTSTR ProcessName = process.c_str();
+
+    string a;
+    DWORD pid = GetProcIDFromName(ProcessName);
+    if (pid == 0)
+    {
+        std::cout << "Fail to find process" << std::endl;
+        return GetLastError();
+    }
+    else
+        return CrashProgram(pid);
+}
+
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE prevInstance, LPSTR lpCmdLine, int nShowCmd)
 {
     int argc;
@@ -117,5 +130,11 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE prevInstance, LPSTR lpCmdLine,
         return res;
     }
     else
-        return CrashProgram(argv[1]);
+    {
+        wstring process(argv[1]);
+        if (IsNumber(process))
+            return CrashProgram(stoi(process));
+        else
+            return CrashProgram(process);
+    }
 }
